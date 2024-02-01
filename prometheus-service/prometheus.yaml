@@ -1,40 +1,21 @@
-# Global configuration for Prometheus scraping jobs:
-
-:global:
-  # How often Prometheus scrapes targets for metrics (15 seconds in this case):
+global:
   scrape_interval: 15s
-
-  # Additional labels added to all scraped metrics:
-  # - Identifies them as belonging to the 'prometheus' monitoring system:
   external_labels:
     monitor: 'prometheus'
 
-# List of individual scraping jobs:
-
 scrape_configs:
-  # This job is named 'prometheus':
-  - job_name: 'prometheus'
-
-    # Uses static configuration to define targets:
-    static_configs:
-      # Scrapes metrics from the Prometheus server running on localhost:9090:
-      - targets: ['localhost:9090']
-
-
-
-# while using AWS Prometheus Service Discovery:
-# replace the code above with this or rather delete the code above and use this part. 
-
-# Commented out Prometheus scraping configuration:
-# global:
-#   scrape_interval: 15s
-#   external_labels:
-#     monitor: 'prometheus'
-
-# scrape_configs:
-#   - job_name: 'node'
-#     ec2_sd_configs:
-#       - region: us-east-2
-#         access_key: yourkey
-#         secret_key: yourkey
-#         port: 9100
+  - job_name: 'node'
+    ec2_sd_configs:
+      - region: us-east-1
+        access_key: yourkey
+        secret_key: yourkey
+        port: 9100
+    relabel_configs:
+      - source_labels: [__meta_ec2_public_ip]
+        regex: '(.*)' #default value
+        target_label: _address_
+        replacement: '${1}:9100'
+        # action: keep
+        # Use the instance ID as the instance label
+      - source_labels: [__meta_ec2_tag_Name]
+        target_label: instance
