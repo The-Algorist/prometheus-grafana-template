@@ -1,21 +1,28 @@
+# Global configuration settings
 global:
+  # Scrape targets every 15 seconds
   scrape_interval: 15s
+  # Add a label 'monitor' with value 'prometheus' to all metrics
   external_labels:
     monitor: 'prometheus'
 
+# Scrape configuration for targets
 scrape_configs:
+  # Job named 'node' for scraping EC2 instances
   - job_name: 'node'
+    # EC2 Service Discovery configuration
     ec2_sd_configs:
-      - region: us-east-1
-        access_key: yourkey
-        secret_key: yourkey
-        port: 9100
+      - region: us-east-1  # AWS region to discover instances in
+        access_key: yourkey  # AWS access key (replace with actual value)
+        secret_key: yourkey  # AWS secret key (replace with actual value)
+        port: 9100  # Port for Node Exporter metrics
+    # Relabeling configurations to modify target labels
     relabel_configs:
+      # Set the target label '_address_' to the EC2 public IP and port 9100
       - source_labels: [__meta_ec2_public_ip]
-        regex: '(.*)' #default value
+        regex: '(.*)'  # Capture any value
         target_label: _address_
-        replacement: '${1}:9100'
-        # action: keep
-        # Use the instance ID as the instance label
+        replacement: '${1}:9100'  # Replace with captured value and append port
+      # Set the target label 'instance' to the instance ID from the 'Name' tag
       - source_labels: [__meta_ec2_tag_Name]
         target_label: instance
